@@ -3,24 +3,36 @@ from dash import Dash, html, dcc, callback, Output, Input
 import plotly.express as px
 import pandas as pd
 
-
-df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminder_unfiltered.csv')
-
 app = Dash(__name__)
 
-app.layout = html.Div([
-    html.H1(children='Title of Dash App', style={'textAlign':'center'}),
-    dcc.Dropdown(df.country.unique(), 'Canada', id='dropdown-selection'),
-    dcc.Graph(id='graph-content')
-])
-
-@callback(
-    Output('graph-content', 'figure'),
-    Input('dropdown-selection', 'value')
+app.layout = html.Div(
+    [
+        html.H1(
+            children="Aquarium Digital Twin User Interface",
+            style={"textAlign": "center"},
+        ),
+        dcc.Dropdown(
+            ["temperature", "ph", "dissolved_oxygen"],
+            "temperature",
+            id="dropdown-selection",
+        ),
+        dcc.Graph(id="graph-content"),
+    ]
 )
+
+
+@callback(Output("graph-content", "figure"), Input("dropdown-selection", "value"))
 def update_graph(value):
-    dff = df[df.country==value]
-    return px.line(dff, x='year', y='pop')
+    return px.line(
+        data_frame=db.select_node_measurements_as_df(conn),
+        x="timestamp",
+        y=value,
+        title=f"Line chart for {value}",
+        color="node_id",
+        labels={"timestamp": "Time", value: value, "node_id": "Node ID"},
+    )
+
 
 if __name__ == "__main__":
+    conn = db.initialize_conn()
     app.run(debug=True)

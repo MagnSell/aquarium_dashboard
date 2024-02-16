@@ -2,7 +2,9 @@ import os
 import uuid
 import psycopg2
 import psycopg2.extras
+import pandas as pd
 from dotenv import load_dotenv
+
 
 def initialize_conn():
     # Load environment variables from .env file
@@ -11,13 +13,16 @@ def initialize_conn():
     db_url = os.getenv("DATABASE_URL")
     # Get database connection details from environment variables
     print("Trying to connect to the database")
-    conn = psycopg2.connect(db_url, 
-                                application_name="$ docs_simplecrud_psycopg2", 
-                                cursor_factory=psycopg2.extras.RealDictCursor)
+    conn = psycopg2.connect(
+        db_url,
+        application_name="$ docs_simplecrud_psycopg2",
+        cursor_factory=psycopg2.extras.RealDictCursor,
+    )
     print("Connected to the database")
 
     psycopg2.extras.register_uuid()
     return conn
+
 
 def close_conn(conn):
     # Close communication with the database
@@ -25,8 +30,9 @@ def close_conn(conn):
     print("Closed the connection to the database")
 
 
-def select_node_measurements(conn):
+def select_node_measurements_as_df(conn):
     # Create a cursor object to execute SQL queries
+    print("Selecting all the Node_Measurement rows")
     cursor = conn.cursor()
 
     # Select all the Node_Measurement rows
@@ -34,8 +40,8 @@ def select_node_measurements(conn):
 
     # Fetch all the rows from the result
     rows = cursor.fetchall()
-
+    df = pd.DataFrame(rows).sort_values(by="timestamp")
     # Commit the changes to the database
     conn.commit()
 
-    return rows
+    return df
