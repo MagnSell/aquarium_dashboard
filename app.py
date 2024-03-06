@@ -2,19 +2,35 @@ from dash import Dash, html, dcc, callback, Output, Input
 import plotly.express as px
 import pandas as pd
 import database_communication as db
+from dash_extensions import Lottie
+import dash_bootstrap_components as dbc
 
 from data_measurements_tab import data_measurements_layout
+from fish_tracking import fish_tracking_layout
 import styles
-app = Dash(__name__)
+app = Dash(__name__,external_stylesheets=[dbc.themes.GRID])
 
 
 app.layout = html.Div(
-    [
-        html.H1(
-            children="Aquarium Digital Twin User Interface",
-            style=styles.header_style,
+    [   
+        dbc.Row([
+            dbc.Col(
+                Lottie(
+                    options=dict(loop=True, autoplay=True, rendererSettings=dict(preserveAspectRatio='xMidYMid slice')),
+                    width="100%", url="https://lottie.host/112227a8-57d8-481e-97ad-8d36d7ad0b8b/sTbI190hxb.json"
+                ),
+                style={'textAlign': 'left', 'background-color': styles.colors['background'], 'margin': '0px', 'padding': '10px 10px 10px 20px'},
+                width=1,
+            ),
+            dbc.Col(
+                html.H1(
+                    children="Aquarium Digital Twin User Interface",
+                    style=styles.header_style,
+                ),  
+            ),
+            
+        ], align="center"),
 
-        ),
         dcc.Tabs(
             id="tabs",
             value="tab-1",
@@ -34,7 +50,7 @@ def render_tab_content(tab):
     if tab == "tab-1":
         return data_measurements_layout
     elif tab == "tab-2":
-        return data_measurements_layout
+        return fish_tracking_layout
     elif tab == "tab-3":
         return data_measurements_layout
 
@@ -50,6 +66,8 @@ def update_graph(value):
         color="node_id",
         labels={"timestamp": "Time", value: value, "node_id": "Node ID"},
     )
+
+
 
 if __name__ == "__main__":
     conn = db.initialize_conn()

@@ -45,3 +45,20 @@ def select_node_measurements_as_df(conn):
     conn.commit()
 
     return df
+
+def get_newest_node_measurements_as_df(conn, n):
+    # Create a cursor object to execute SQL queries
+    cursor = conn.cursor()
+
+    # Select the newest N Node_Measurement rows
+    cursor.execute(f"SELECT * FROM Node_Measurement ORDER BY timestamp DESC LIMIT {n}")
+
+    # Fetch all the rows from the result
+    rows = cursor.fetchall()
+    df = pd.DataFrame(rows).sort_values(by="timestamp")
+    # Commit the changes to the database
+    conn.commit()
+
+    return df
+
+

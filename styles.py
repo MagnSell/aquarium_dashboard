@@ -23,7 +23,8 @@ header_style = {'background-color': colors['background'],
                 'margin': '0px',
                 'padding': '10px',
                 'font-size': sizes['title_font'],
-                'textAlign': 'center'
+                'textAlign': 'left',
+                'vertical-align': 'center',
                 }
 
 sub_header_style = {'color': colors['text'], 
