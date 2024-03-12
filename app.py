@@ -7,6 +7,8 @@ import dash_bootstrap_components as dbc
 
 from data_measurements_tab import data_measurements_layout
 from fish_tracking import fish_tracking_layout
+from model_tab import model_tab_layout
+
 import styles
 app = Dash(__name__,external_stylesheets=[dbc.themes.GRID])
 
@@ -52,14 +54,14 @@ def render_tab_content(tab):
     elif tab == "tab-2":
         return fish_tracking_layout
     elif tab == "tab-3":
-        return data_measurements_layout
+        return model_tab_layout
 
 
 ### Callbacks for the data measurements tab
 @app.callback(Output("graph-content", "figure"), Input("dropdown-selection", "value"))
 def update_graph(value):
     return px.line(
-        data_frame=db.select_node_measurements_as_df(conn).iloc[10:],
+        data_frame=db.get_newest_node_measurements_as_df(conn, n=100000),
         x="timestamp",
         y=value,
         title=f"Line chart for {value}",
@@ -67,7 +69,19 @@ def update_graph(value):
         labels={"timestamp": "Time", value: value, "node_id": "Node ID"},
     )
 
+### Callbacks for the fish tracking tab
 
+
+### Callbacks for the 3D model tab
+@app.callback(Output("3d-model", "figure"), Input("3d-model", "value"))
+def update_3d_model(value):
+    return px.scatter_3d(
+        x=[10, 2, 3],
+        y=[4, 5, 6],
+        z=[7, 8, 9],
+        title="3D scatter plot",
+        labels={"x": "X", "y": "Y", "z": "Z"},
+    )
 
 if __name__ == "__main__":
     conn = db.initialize_conn()
