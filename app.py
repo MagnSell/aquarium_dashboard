@@ -11,7 +11,7 @@ from model_tab import model_tab_layout
 
 import styles
 app = Dash(__name__,external_stylesheets=[dbc.themes.GRID])
-
+app.config.suppress_callback_exceptions=True
 
 app.layout = html.Div(
     [   
