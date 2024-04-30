@@ -4,7 +4,7 @@ import pandas as pd
 import database_communication as db
 from dash_extensions import Lottie
 import dash_bootstrap_components as dbc
-
+import numpy as np
 from data_measurements_tab import data_measurements_layout
 from model_tab import model_tab_layout
 
@@ -130,19 +130,25 @@ def update_fish_datatable(n):
 ### Callbacks for the 3D model tab
 @app.callback(Output("3d-model", "figure"), Input('interval-component', 'n_intervals'))
 def update_3d_model(value):
-    camera_position = [10, 2, 3]
+    camera_position = [25, 50, 80]
+    fish_df = db.get_newest_fish(conn)
+    fish_pos = fish_df.loc[:,['x_position','y_position','z_position']].values
+    fish_pos=np.transpose(fish_pos)
     return px.scatter_3d(
-        x=[10, 2, 3],
-        y=[4, 5, 6],
-        z=[7, 8, 9],
+        x=fish_pos[0],
+        y=fish_pos[1],
+        z=fish_pos[2],
         title="3D scatter plot",
         labels={"x": "X", "y": "Y", "z": "Z"},
+        range_x=[-1, 1],
+        range_y=[-1, 1],
+        range_z=[-1, 1],
     )
 
 if __name__ == "__main__":
     conn = db.initialize_conn()
     #fish_columns=['uuid','timestamp','fish_id','x_position','y_position','z_position','x_velocity','y_velocity','z_velocity']
     fish_columns=['fish_id','x_position','y_position','z_position']
-    #fish_df = db.get_newest_fish(conn)
+    fish_df = db.get_newest_fish(conn)
     #fish_columns=fish_df.columns
     app.run(debug=True)
