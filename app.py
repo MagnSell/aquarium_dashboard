@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, callback, Output, Input
+from dash import Dash, html, dcc, callback, Output, Input, dash_table
 import plotly.express as px
 import pandas as pd
 import database_communication as db
@@ -6,7 +6,6 @@ from dash_extensions import Lottie
 import dash_bootstrap_components as dbc
 
 from data_measurements_tab import data_measurements_layout
-from fish_tracking import fish_tracking_layout
 from model_tab import model_tab_layout
 
 import styles
@@ -43,6 +42,11 @@ app.layout = html.Div(
             ],
         ),
         html.Div(id="tab-content"),
+        dcc.Interval(
+            id='interval-component',
+            interval=1000,  # Refresh interval in milliseconds
+            n_intervals=0  # Initial number of intervals
+        )
     ],
     style=styles.background_style,
 )
@@ -52,7 +56,54 @@ def render_tab_content(tab):
     if tab == "tab-1":
         return data_measurements_layout
     elif tab == "tab-2":
-        return fish_tracking_layout
+        return html.Div(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.H2(
+                                children="Fish Tracking",
+                                style=styles.header_style,
+                            ),
+                            width=6,
+                        ),
+                        dbc.Col(
+                            html.H4(
+                                children="Coordinates",
+                                style=styles.header_style,
+                            ),
+                            width=6,
+                        ),
+                    ],
+                    align="center",
+                    style={'margin': '20px'}
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.Img(
+                                src="http://10.22.234.157:5000/video_stream",
+                                style={'width': '100%'}
+                            ),
+                            width=6,
+                        ),
+                        dbc.Col(
+                            html.Div(
+                                dash_table.DataTable(
+                                    id='fish-datatable',
+                                    columns=[{"name": i, "id": i} for i in fish_columns]
+                                    
+                                )
+                            ),
+                            width=6,
+                        ),
+                    ],
+                    style={'margin': '20px'}
+                ),
+            ],
+            style=styles.background_style
+        )
+
     elif tab == "tab-3":
         return model_tab_layout
 
@@ -70,11 +121,16 @@ def update_graph(value):
     )
 
 ### Callbacks for the fish tracking tab
-
+@app.callback(Output("fish-datatable", "data"), Input('interval-component', 'n_intervals'))
+def update_fish_datatable(n):
+    fish_df = db.get_newest_fish(conn)
+    fish_df = fish_df[fish_columns]
+    return fish_df.to_dict(orient="records")
 
 ### Callbacks for the 3D model tab
-@app.callback(Output("3d-model", "figure"), Input("3d-model", "value"))
+@app.callback(Output("3d-model", "figure"), Input('interval-component', 'n_intervals'))
 def update_3d_model(value):
+    camera_position = [10, 2, 3]
     return px.scatter_3d(
         x=[10, 2, 3],
         y=[4, 5, 6],
@@ -85,4 +141,8 @@ def update_3d_model(value):
 
 if __name__ == "__main__":
     conn = db.initialize_conn()
+    #fish_columns=['uuid','timestamp','fish_id','x_position','y_position','z_position','x_velocity','y_velocity','z_velocity']
+    fish_columns=['fish_id','x_position','y_position','z_position']
+    #fish_df = db.get_newest_fish(conn)
+    #fish_columns=fish_df.columns
     app.run(debug=True)
