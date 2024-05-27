@@ -63,9 +63,8 @@ def get_newest_node_measurements_as_df(conn, n):
     return df
 
 
-def get_newest_fish(conn):
+def get_newest_fish(conn,n):
     # Create a cursor object to execute SQL queries
-    n=4
     cursor = conn.cursor()
 
     # Select the newest N Node_Measurement rows
@@ -76,7 +75,8 @@ def get_newest_fish(conn):
     df = pd.DataFrame(rows).sort_values(by="timestamp")
     # Commit the changes to the database
     conn.commit()
-
+    df = df.sort_values('timestamp', ascending=False)
+    df = df.drop_duplicates('fish_id', keep='first')
     # Convert UUID values to string
     df['uuid'] = df['uuid'].apply(lambda x: str(x))
     # Convert timestamp column to string
@@ -86,3 +86,23 @@ def get_newest_fish(conn):
     df[['x_position','y_position','z_position','x_velocity','y_velocity','z_velocity']] = df[['x_position','y_position','z_position','x_velocity','y_velocity','z_velocity']].round(3)
 
     return df
+
+def clear_node_measurements_data(conn):
+    # Create a cursor object to execute SQL queries
+    cursor = conn.cursor()
+
+    # Delete all the rows from Node_Measurement table
+    cursor.execute("DELETE FROM Node_Measurement")
+
+    # Commit the changes to the database
+    conn.commit()
+
+def clear_fish_data(conn):
+    # Create a cursor object to execute SQL queries
+    cursor = conn.cursor()
+
+    # Delete all the rows from Fish table
+    cursor.execute("DELETE FROM Fish")
+
+    # Commit the changes to the database
+    conn.commit()
